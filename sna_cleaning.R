@@ -165,6 +165,9 @@ ideol_sub <- ideol_sub[match(igraph::V(pol_proj)$name, ideol_sub$Person), ]
 igraph::V(pol_proj)$LeftRight               <- ideol_sub$LeftRight
 igraph::V(pol_proj)$ProgressiveConservative <- ideol_sub$ProgressiveConservative
 igraph::V(pol_proj)$Seats                   <- ideol_sub$Seats
+igraph::V(pol_proj)$Sex                     <- ideol_sub$Sex
+igraph::V(pol_proj)$Age                     <- ideol_sub$Age
+
 
 # ======================================================
 # STEP 2D: GENERATE IDEOLOGICAL COORDINATES FOR PLOTTING
@@ -403,6 +406,7 @@ igraph::V(pol_proj)$layout_y <- coords[,2]
 
 save(pol_proj, file = "political_projection_with_attributes.Rdata")
 igraph::vertex_attr_names(pol_proj)
+
 
 
 
