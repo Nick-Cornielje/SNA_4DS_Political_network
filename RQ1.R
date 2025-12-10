@@ -14,6 +14,8 @@ Y <- as.matrix(Y)
 seats <- igraph::V(pol_proj)$Seats
 lr    <- igraph::V(pol_proj)$LeftRight
 pc    <- igraph::V(pol_proj)$ProgressiveConservative
+age   <- igraph::V(pol_proj)$Age
+gender <- igraph::V(pol_proj)$Gender
 
 
 # --------------------------
@@ -55,7 +57,15 @@ model_ideo <- sna::netlm(
   mode = "undirected",
   nullhyp = "qapspp"
 )
- 
+
+# --------------------------
+# Control Variables
+# --------------------------
+AgeDist <- abs(outer(age, age, "-"))
+GenderSame <- outer(gender, gender, "==") * 1
+
+
+
 #model_ideo <- model_ideo$names <- c("Intcpt", "Ideology")
 # ------------------------------------------------------
 # Compare models
@@ -75,11 +85,21 @@ model_both <- sna::netlm(
   mode = "undirected",
   nullhyp = "qapspp"
 )
-model_both <- model_both$names <- c("Intcpt", "Seats", "Ideology")
+model_both$names <- c("Intcpt", "Seats", "Ideology")
 cat("\n===== MRQAP: Combined Model (Seats + Ideology) =====\n")
 print(summary(model_both))
 
-texreg::screenreg(list(model_seats, model_ideo, model_both))
+model_control <- sna::netlm(
+  y = Y,
+  x = list(SeatMat, IdeoSim, AgeDist, GenderSame),
+  intercept = TRUE,
+  mode = "undirected",
+  nullhyp = "qapspp"
+)
+model_control$names <- c("Intcpt", "Seats", "Ideology", "Age", "Gender")
+cat("\n===== MRQAP: Combined Model with control (Seats + Ideology + Age + Gender) =====\n")
+summary(model_control)
+texreg::screenreg(list(model_seats, model_ideo, model_both, model_control))
 
 ## Extra model -- >Log model
 ## 
