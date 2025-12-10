@@ -134,7 +134,7 @@ ew_plot <- (ew / max(ew)) * 10
 ideol <- utils::read.csv("Political_Orientation_Data.csv", stringsAsFactors = FALSE)
 
 # Required columns
-need <- c("Person","Seats","ProgressiveConservative","LeftRight")
+need <- c("Person","Seats","ProgressiveConservative","LeftRight", "Age", "Gender")
 miss <- setdiff(need, names(ideol))
 if (length(miss)) stop("Missing columns in Political_Orientation_Data.csv: ", paste(miss, collapse=", "))
 
@@ -165,9 +165,8 @@ ideol_sub <- ideol_sub[match(igraph::V(pol_proj)$name, ideol_sub$Person), ]
 igraph::V(pol_proj)$LeftRight               <- ideol_sub$LeftRight
 igraph::V(pol_proj)$ProgressiveConservative <- ideol_sub$ProgressiveConservative
 igraph::V(pol_proj)$Seats                   <- ideol_sub$Seats
-igraph::V(pol_proj)$Sex                     <- ideol_sub$Sex
 igraph::V(pol_proj)$Age                     <- ideol_sub$Age
-
+igraph::V(pol_proj)$Gender                     <- ideol_sub$Gender
 
 # ======================================================
 # STEP 2D: GENERATE IDEOLOGICAL COORDINATES FOR PLOTTING
@@ -341,7 +340,7 @@ ew_plot <- (ew / max(ew)) * 10
 ideol <- utils::read.csv("Political_Orientation_Data.csv", stringsAsFactors = FALSE)
 
 # Required columns
-need <- c("Person","Seats","ProgressiveConservative","LeftRight")
+need <- c("Person","Seats","ProgressiveConservative","LeftRight","Age","Gender")
 miss <- setdiff(need, names(ideol))
 if (length(miss)) stop("Missing columns in Political_Orientation_Data.csv: ", paste(miss, collapse=", "))
 
@@ -372,8 +371,9 @@ ideol_sub <- ideol_sub[match(igraph::V(pol_proj)$name, ideol_sub$Person), ]
 igraph::V(pol_proj)$LeftRight               <- ideol_sub$LeftRight
 igraph::V(pol_proj)$ProgressiveConservative <- ideol_sub$ProgressiveConservative
 igraph::V(pol_proj)$Seats                   <- ideol_sub$Seats
+igraph::V(pol_proj)$Age                     <- ideol_sub$Age
+igraph::V(pol_proj)$Gender                  <- ideol_sub$Gender
 
-plot(pol_proj)
 # ======================================================
 # STEP 2D: GENERATE IDEOLOGICAL COORDINATES FOR PLOTTING
 # ======================================================
