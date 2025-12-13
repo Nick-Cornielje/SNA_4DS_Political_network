@@ -462,9 +462,8 @@ model_control <- sna::netlm(
   nullhyp = "qapspp"
 )
 model_control$names <- c("Intcpt", "Seats", "Ideology", "Age", "Gender")
-cat("\n===== MRQAP: Combined Model with control (Seats + Ideology + Age + Gender) =====\n")
-summary(model_control)
-texreg::screenreg(list(model_seats, model_ideo, model_both, model_control))
+
+
 
 
 summary(model_control)
