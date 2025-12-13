@@ -1,8 +1,4 @@
-# ======================================================
-# STEP 1: BUILD & PLOT OUTLET–POLITICIAN BIPARTITE NETWORK
-# ======================================================
-
-# --- Read data and extract relevant columns ---
+# Read data and extract relevant columns 
 path <- "news_clf_title_preprocessed_validated.xlsx"
 raw  <- readxl::read_excel(path)
 
@@ -20,7 +16,7 @@ if (any(is.na(sel_idx))) stop("Missing columns: ", paste(wanted[is.na(sel_idx)],
 df <- raw[, sel_idx]
 names(df) <- wanted
 
-# --- Parse politicians list ---
+# Parse politicians list 
 df <- df[!is.na(df$politicians_depicted) & trimws(df$politicians_depicted) != "[]", ]
 
 parse_list <- function(x) {
@@ -32,7 +28,7 @@ parse_list <- function(x) {
 }
 df$politicians_depicted <- parse_list(df$politicians_depicted)
 
-# --- Create weighted edge list ---
+# Create weighted edge list 
 edges <- data.frame(
   from = rep(df$outlet, sapply(df$politicians_depicted, length)),
   to   = unlist(df$politicians_depicted),
@@ -45,15 +41,15 @@ edges <- aggregate(list(weight = rep(1, nrow(edges))),
                    by = list(from = edges$from, to = edges$to),
                    FUN = sum)
 
-# --- Create bipartite network ---
+# Create bipartite network 
 net <- snafun::to_network(edges, bipartite = TRUE)
 
 
-# --- Clean network ---
+# Clean network 
 net <- snafun::remove_loops(net)
 net <- snafun::remove_isolates(net)
 
-# --- Add vertex attributes (outlet vs politician) ---
+# Add vertex attributes (outlet vs politician)
 n_outlets <- length(unique(edges$from))
 n_total   <- network::network.size(net)
 n_pols    <- n_total - n_outlets
@@ -64,15 +60,15 @@ snafun::add_vertex_attributes(
 )
 
 network::list.vertex.attributes(net)
-# --- Save the network ---
+# Save the network
 save(net, file="bipartite_net.Rdata")
 
-# --- Create edge weights for plot ---
+# Create edge weights for plot 
 ew <- network::get.edge.attribute(net, "weight")
 ew_scaled <- (ew / max(ew)) * 8
 network::set.edge.attribute(net, "weight", ew_scaled)
 
-# --- Plot bipartite graph ---
+# Plot bipartite graph 
 edge_colors <- gray(1 - ew / max(ew))  # darker = higher weight
 
 network::plot.network(
@@ -93,11 +89,8 @@ cat("Is bipartite:", snafun::is_bipartite(net), "\n")
 cat("Vertices:", snafun::count_vertices(net), "\n")
 cat("Edges:", snafun::count_edges(net), "\n\n")
 
-# ======================================================
-# POLITICIAN–POLITICIAN PROJECTION (SAME ARTICLE)
-# ======================================================
 
-# --- Build article–politician incidence ---
+# Build article–politician incidence 
 articles <- as.character(df$id)
 pols     <- sort(unique(unlist(df$politicians_depicted)))
 
@@ -111,11 +104,11 @@ for (i in seq_along(df$politicians_depicted)) {
   }
 }
 
-# --- Projection: co-appearance in the same article ---
+# Projection: co-appearance in the same article
 PP <- P %*% t(P)      # weighted co-occurrence
 diag(PP) <- 0
 
-# --- Build igraph projection (undirected, weighted) ---
+# Build igraph projection (undirected, weighted)
 pol_proj <- igraph::graph_from_adjacency_matrix(
   PP, mode = "undirected", weighted = TRUE, diag = FALSE
 )
@@ -125,10 +118,6 @@ pol_proj <- igraph::graph_from_adjacency_matrix(
 # Edge widths for plotting
 ew <- igraph::E(pol_proj)$weight
 ew_plot <- (ew / max(ew)) * 10
-
-# ======================================================
-# STEP 2B: LOAD IDEOLOGY + SEATS & ADD ATTRIBUTES
-# ======================================================
 
 # Load ideology file (must contain Person, Seats, ProgressiveConservative, LeftRight)
 ideol <- utils::read.csv("Political_Orientation_Data.csv", stringsAsFactors = FALSE)
@@ -157,9 +146,7 @@ pol_proj <- igraph::induced_subgraph(
 # Reorder ideology rows to match current vertex order
 ideol_sub <- ideol_sub[match(igraph::V(pol_proj)$name, ideol_sub$Person), ]
 
-# ======================================================
-# STEP 2C: ADD ATTRIBUTES TO THE PROJECTION NETWORK
-# ======================================================
+
 
 # Add vertex attributes for future calculations
 igraph::V(pol_proj)$LeftRight               <- ideol_sub$LeftRight
@@ -168,9 +155,6 @@ igraph::V(pol_proj)$Seats                   <- ideol_sub$Seats
 igraph::V(pol_proj)$Age                     <- ideol_sub$Age
 igraph::V(pol_proj)$Gender                     <- ideol_sub$Gender
 
-# ======================================================
-# STEP 2D: GENERATE IDEOLOGICAL COORDINATES FOR PLOTTING
-# ======================================================
 
 coords <- cbind(
   ideol_sub$LeftRight,
@@ -194,21 +178,11 @@ coords <- coords + matrix(stats::rnorm(length(coords), sd = 0.02), ncol = 2)
 igraph::V(pol_proj)$layout_x <- coords[,1]
 igraph::V(pol_proj)$layout_y <- coords[,2]
 
-# ======================================================
-# STEP 2E: SAVE THE UPDATED PROJECTION NETWORK
-# ======================================================
-
 save(pol_proj, file = "political_projection_with_attributes.Rdata")
 igraph::vertex_attr_names(pol_proj)
 
-## New thing:
-## 
 
-# ======================================================
-# STEP 1: BUILD & PLOT OUTLET–POLITICIAN BIPARTITE NETWORK
-# ======================================================
-
-# --- Read data and extract relevant columns ---
+# Read data and extract relevant columns 
 path <- "news_clf_title_preprocessed_validated.xlsx"
 raw  <- readxl::read_excel(path)
 
@@ -226,7 +200,7 @@ if (any(is.na(sel_idx))) stop("Missing columns: ", paste(wanted[is.na(sel_idx)],
 df <- raw[, sel_idx]
 names(df) <- wanted
 
-# --- Parse politicians list ---
+# Parse politicians list
 df <- df[!is.na(df$politicians_depicted) & trimws(df$politicians_depicted) != "[]", ]
 
 parse_list <- function(x) {
@@ -238,7 +212,7 @@ parse_list <- function(x) {
 }
 df$politicians_depicted <- parse_list(df$politicians_depicted)
 
-# --- Create weighted edge list ---
+# Create weighted edge list 
 edges <- data.frame(
   from = rep(df$outlet, sapply(df$politicians_depicted, length)),
   to   = unlist(df$politicians_depicted),
@@ -251,15 +225,15 @@ edges <- aggregate(list(weight = rep(1, nrow(edges))),
                    by = list(from = edges$from, to = edges$to),
                    FUN = sum)
 
-# --- Create bipartite network ---
+# Create bipartite network 
 net <- snafun::to_network(edges, bipartite = TRUE)
 
 
-# --- Clean network ---
+# Clean network 
 net <- snafun::remove_loops(net)
 net <- snafun::remove_isolates(net)
 
-# --- Add vertex attributes (outlet vs politician) ---
+# Add vertex attributes (outlet vs politician) 
 n_outlets <- length(unique(edges$from))
 n_total   <- network::network.size(net)
 n_pols    <- n_total - n_outlets
@@ -270,15 +244,15 @@ snafun::add_vertex_attributes(
 )
 
 network::list.vertex.attributes(net)
-# --- Save the network ---
+# Save the network 
 save(net, file="bipartite_net.Rdata")
 
-# --- Create edge weights for plot ---
+#  Create edge weights for plot 
 ew <- network::get.edge.attribute(net, "weight")
 ew_scaled <- (ew / max(ew)) * 8
 network::set.edge.attribute(net, "weight", ew_scaled)
 
-# --- Plot bipartite graph ---
+# Plot bipartite graph 
 edge_colors <- gray(1 - ew / max(ew))  # darker = higher weight
 
 network::plot.network(
@@ -299,11 +273,7 @@ cat("Is bipartite:", snafun::is_bipartite(net), "\n")
 cat("Vertices:", snafun::count_vertices(net), "\n")
 cat("Edges:", snafun::count_edges(net), "\n\n")
 
-# ======================================================
-# POLITICIAN–POLITICIAN PROJECTION (SAME ARTICLE)
-# ======================================================
-
-# --- Build article–politician incidence ---
+# Build article–politician incidence 
 articles <- as.character(df$id)
 pols     <- sort(unique(unlist(df$politicians_depicted)))
 
@@ -317,11 +287,11 @@ for (i in seq_along(df$politicians_depicted)) {
   }
 }
 
-# --- Projection: co-appearance in the same article ---
+# Projection: co-appearance in the same article 
 PP <- P %*% t(P)      # weighted co-occurrence
 diag(PP) <- 0
 
-# --- Build igraph projection (undirected, weighted) ---
+# Build igraph projection (undirected, weighted) 
 pol_proj <- igraph::graph_from_adjacency_matrix(
   PP, mode = "undirected", weighted = TRUE, diag = FALSE
 )
@@ -332,9 +302,6 @@ pol_proj <- igraph::graph_from_adjacency_matrix(
 ew <- igraph::E(pol_proj)$weight
 ew_plot <- (ew / max(ew)) * 10
 
-# ======================================================
-# STEP 2B: LOAD IDEOLOGY + SEATS & ADD ATTRIBUTES
-# ======================================================
 
 # Load ideology file (must contain Person, Seats, ProgressiveConservative, LeftRight)
 ideol <- utils::read.csv("Political_Orientation_Data.csv", stringsAsFactors = FALSE)
@@ -363,20 +330,12 @@ pol_proj <- igraph::induced_subgraph(
 # Reorder ideology rows to match current vertex order
 ideol_sub <- ideol_sub[match(igraph::V(pol_proj)$name, ideol_sub$Person), ]
 
-# ======================================================
-# STEP 2C: ADD ATTRIBUTES TO THE PROJECTION NETWORK
-# ======================================================
-
 # Add vertex attributes for future calculations
 igraph::V(pol_proj)$LeftRight               <- ideol_sub$LeftRight
 igraph::V(pol_proj)$ProgressiveConservative <- ideol_sub$ProgressiveConservative
 igraph::V(pol_proj)$Seats                   <- ideol_sub$Seats
 igraph::V(pol_proj)$Age                     <- ideol_sub$Age
 igraph::V(pol_proj)$Gender                  <- ideol_sub$Gender
-
-# ======================================================
-# STEP 2D: GENERATE IDEOLOGICAL COORDINATES FOR PLOTTING
-# ======================================================
 
 coords <- cbind(
   ideol_sub$LeftRight,
@@ -400,12 +359,9 @@ coords <- coords + matrix(stats::rnorm(length(coords), sd = 0.02), ncol = 2)
 igraph::V(pol_proj)$layout_x <- coords[,1]
 igraph::V(pol_proj)$layout_y <- coords[,2]
 
-# ======================================================
-# STEP 2E: SAVE THE UPDATED PROJECTION NETWORK
-# ======================================================
-
 save(pol_proj, file = "political_projection_with_attributes.Rdata")
 igraph::vertex_attr_names(pol_proj)
+
 
 
 
