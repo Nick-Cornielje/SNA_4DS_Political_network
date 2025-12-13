@@ -680,7 +680,7 @@ m2 <- ergm::ergm(
 )
 
 m3 <- ergm::ergm(
-  net_bip ~ edges + absdiff("LeftRight") + absdiff("ProgCons"),
+  net_bip ~ edges + nodecov("LeftRight") + nodecov("ProgCons"),
   control = ergm::control.ergm(
     MCMC.burnin     = 20000,
     MCMC.interval   = 1000,
@@ -691,14 +691,15 @@ m3 <- ergm::ergm(
 
 m4 <- ergm::ergm(
   net_bip ~ edges +
-    absdiff("LeftRight") + 
-    absdiff("ProgCons") +
+    nodecov("LeftRight") + 
+    nodecov("ProgCons") +
     nodecov("Seats") + 
     b2star(2),
   control = ergm::control.ergm(
     MCMC.burnin     = 20000,
     MCMC.interval   = 1000,
     MCMC.samplesize = 5000,
+    parallel = 6,
     seed            = 123
   )
 )
@@ -707,39 +708,57 @@ m4 <- ergm::ergm(
 m5 <- ergm::ergm(
   net_bip ~ 
     edges +
-    absdiff("LeftRight") + 
-    absdiff("ProgCons") +
+    nodecov("LeftRight") + 
+    nodecov("ProgCons") +
     nodecov("Seats") +
-    b2degree(d=1:4),
+    b1star(2),
   control = ergm::control.ergm(
     MCMC.burnin     = 20000,
     MCMC.interval   = 1000,
     MCMC.samplesize = 50000,
     MCMLE.maxit = 20,
-    seed            = 42
+    parallel = 6,
+    seed            = 135
   )
 )
 
-texreg::screenreg(list(m1, m2, m3, m4, m5))
+
+
+m6 <- ergm::ergm(
+  net_bip ~ 
+    edges +
+    nodecov("LeftRight") + 
+    nodecov("ProgCons") +
+    nodecov("Seats") +
+    b2star(2) +
+    b1star(2),
+  control = ergm::control.ergm(
+    MCMC.burnin     = 20000,
+    MCMC.interval   = 1000,
+    MCMC.samplesize = 50000,
+    MCMLE.maxit = 20,
+    parallel = 6,
+    seed            = 124
+  )
+)
+
+texreg::screenreg(list(m1, m2, m3, m4, m5, m6))
 
 ergm::search.ergmTerms()
 
 
 ergm::mcmc.diagnostics(m4)
 ergm::mcmc.diagnostics(m5)
+ergm::mcmc.diagnostics(m6)
+
 
 plot(ergm::gof(m1))
 plot(ergm::gof(m2))
 plot(ergm::gof(m3))
 plot(ergm::gof(m4))
 plot(ergm::gof(m5))
+plot(ergm::gof(m6))
 
-## Print summaries
-
-summary(m1)
-summary(m2)
-summary(m3)
-summary(m4)
 
 
 
