@@ -18,12 +18,11 @@ age   <- igraph::V(pol_proj)$Age
 gender <- igraph::V(pol_proj)$Gender
 
 
-# --------------------------
+
 # H1: Seat product matrix
-# --------------------------
 SeatMat <- outer(seats, seats, "*")
 
-# ---- Model 1: Seats only (H1)
+#  Model 1: Seats only (H1)
 model_seats <- sna::netlm(
   y = Y,
   x = list(SeatMat),
@@ -33,9 +32,9 @@ model_seats <- sna::netlm(
 )
 
 #model_seats <- model_seats$names <- c("Intcpt", "Seats")
-# --------------------------
+
 # H2: Ideology similarity
-# --------------------------
+
 
 # 1D distances
 LRdist <- abs(outer(lr, lr, "-"))
@@ -49,7 +48,7 @@ LRsim  <- max(LRdist)  - LRdist
 PCsim  <- max(PCdist)  - PCdist
 IdeoSim <- max(IdeologyDist) - IdeologyDist  # full 2D similarity
 
-# ---- Model 2: Ideology similarity only (H2)
+# Model 2: Ideology similarity only (H2)
 model_ideo <- sna::netlm(
   y = Y,
   x = list(IdeoSim),
@@ -58,26 +57,24 @@ model_ideo <- sna::netlm(
   nullhyp = "qapspp"
 )
 
-# --------------------------
+
 # Control Variables
-# --------------------------
 AgeDist <- abs(outer(age, age, "-"))
 GenderSame <- outer(gender, gender, "==") * 1
 
 
 
 #model_ideo <- model_ideo$names <- c("Intcpt", "Ideology")
-# ------------------------------------------------------
-# Compare models
-# ------------------------------------------------------
 
-cat("\n===== MRQAP: Effect of Seats (H1) =====\n")
+# Compare models
+
+
 print(summary(model_seats))
 
-cat("\n===== MRQAP: Effect of Ideological Similarity (H2) =====\n")
+
 print(summary(model_ideo))
 
-# Optional: Combined model (if you want later)
+# Optional: Combined model 
 model_both <- sna::netlm(
   y = Y,
   x = list(SeatMat, IdeoSim),
@@ -86,7 +83,7 @@ model_both <- sna::netlm(
   nullhyp = "qapspp"
 )
 model_both$names <- c("Intcpt", "Seats", "Ideology")
-cat("\n===== MRQAP: Combined Model (Seats + Ideology) =====\n")
+
 print(summary(model_both))
 
 model_control <- sna::netlm(
@@ -101,27 +98,8 @@ cat("\n===== MRQAP: Combined Model with control (Seats + Ideology + Age + Gender
 summary(model_control)
 texreg::screenreg(list(model_seats, model_ideo, model_both, model_control))
 
-## Extra model -- >Log model
-## 
 
-Ylog <- log(1 + Y)
-SeatNorm <- SeatMat / max(SeatMat)
-alpha <- 1 / sd(as.vector(IdeologyDist))
-IdeoExp <- exp(-alpha * IdeologyDist)
-
-# Add a weight which weig
-deg <- rowSums(Y)   # weighted node strength
-DegMat <- outer(deg, deg, "*")
-DegNorm <- DegMat / max(DegMat)
-
-
-model_control <- sna::netlm(
-  y = Ylog,
-  x = list(DegNorm, SeatNorm, IdeoExp),  # or DegNorm instead of PopNorm
-  intercept = TRUE,
-  mode = "undirected",
-  nullhyp = "qap"
-)
 summary(model_control)
+
 
 
